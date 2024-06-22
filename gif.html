@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation</title>
+    <style>
+        canvas {
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="shapesCanvas" width="1280" height="720"></canvas>
+    <script>
+        const canvas = document.getElementById('shapesCanvas');
+        const context = canvas.getContext('2d');
+
+        const colors = {
+            yellow: '#ffe074',
+            white: '#FFFFFF',
+            red: '#da3256',
+            pink: '#ff6378',
+            grey: '#1f7977',
+            lightgreen: '#4bc29c'
+        };
+
+        const backgrounds = ['#f5c2c2', '#a7e6cb']; 
+
+        function drawShape(x, y, radius, color, width, height, angle = 0) {
+            context.save();
+            context.translate(x, y);
+            context.rotate((angle * Math.PI) / 180);
+            context.beginPath();
+            if (width === null || height === null) {
+                context.arc(0, 0, radius, 0, 2 * Math.PI);
+            } else {
+                const cornerRadius = Math.min(radius, width / 2, height / 2);
+                context.moveTo(-width / 2 + cornerRadius, -height / 2);
+                context.lineTo(width / 2 - cornerRadius, -height / 2);
+                context.arcTo(width / 2, -height / 2, width / 2, -height / 2 + cornerRadius, cornerRadius);
+                context.lineTo(width / 2, height / 2 - cornerRadius);
+                context.arcTo(width / 2, height / 2, width / 2 - cornerRadius, height / 2, cornerRadius);
+                context.lineTo(-width / 2 + cornerRadius, height / 2);
+                context.arcTo(-width / 2, height / 2, -width / 2, height / 2 - cornerRadius, cornerRadius);
+                context.lineTo(-width / 2, -height / 2 + cornerRadius);
+                context.arcTo(-width / 2, -height / 2, -width / 2 + cornerRadius, -height / 2, cornerRadius);
+            }
+            context.fillStyle = color;
+            context.fill();
+            context.restore();
+        }
+
+        function drawRect(x, y, width, height, color, cornerRadius = 10, angle = 0) {
+            context.save();
+            context.translate(x + width / 2, y + height / 2);
+            context.rotate((angle * Math.PI) / 180);
+            context.beginPath();
+            context.moveTo(-width / 2 + cornerRadius, -height / 2);
+            context.lineTo(width / 2 - cornerRadius, -height / 2);
+            context.arcTo(width / 2, -height / 2, width / 2, -height / 2 + cornerRadius, cornerRadius);
+            context.lineTo(width / 2, height / 2 - cornerRadius);
+            context.arcTo(width / 2, height / 2, width / 2 - cornerRadius, height / 2, cornerRadius);
+            context.lineTo(-width / 2 + cornerRadius, height / 2);
+            context.arcTo(-width / 2, height / 2, -width / 2, height / 2 - cornerRadius, cornerRadius);
+            context.lineTo(-width / 2, -height / 2 + cornerRadius);
+            context.arcTo(-width / 2, -height / 2, -width / 2 + cornerRadius, -height / 2, cornerRadius);
+            context.fillStyle = color;
+            context.fill();
+            context.restore();
+        }
+
+        function drawTriangle(x, y, width, height, color, angle = 0) {
+            context.save();
+            context.translate(x, y);
+            context.rotate((angle * Math.PI) / 180);
+            context.beginPath();
+            context.moveTo(0, -height / 2); 
+            context.lineTo(-width / 2, height / 2); 
+            context.lineTo(width / 2, height / 2); 
+            context.closePath();
+            context.fillStyle = color;
+            context.fill();
+            context.restore();
+        }
+
+        function drawSemiCircle(x, y, radius, color, progress) {
+            context.beginPath();
+            context.arc(x, y, radius, Math.PI * 1, Math.PI * (1 - progress));
+            context.lineTo(x, y);
+            context.closePath();
+            context.fillStyle = color;
+            context.fill();
+        }
+
+        function drawText(text, x, y, fontSize, color, angle = 0) {
+            context.save();
+            context.translate(x, y);
+            context.rotate((angle * Math.PI) / 180);
+            context.font = `${fontSize}px Arial`;
+            context.fillStyle = color;
+            context.fillText(text, 0, 0);
+            context.restore();
+        }
+
+        const frames = [
+            // frame1
+            { backgroundColor: backgrounds[0], shapes: [
+                { type: 'rect', x: 450, y: 280, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 0 },
+                { type: 'circle', x: 540, y: 190, radius: 30, color: colors.yellow },
+                { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 60, angle: 0 },
+                { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 }, // Circle
+                { type: 'triangle', x: 740, y: 430, width: 100, height: 60, color: colors.yellow, angle: 270 }, // Triangle
+                { type: 'rect', x: 640, y: 350, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 0 } // Rectangle
+            ]},
+
+            //frame2
+            { shapes: [{ type: 'rect', x: 450, y: 250, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 1 },
+                       { type: 'circle', x: 540, y: 220, radius: 30, color: colors.yellow, },
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 735, y: 430, width: 100, height: 60, color: colors.yellow, angle: 260 },
+                       { type: 'rect', x: 640, y: 340, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame3
+            { shapes: [{ type: 'rect', x: 450, y: 240, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 2 },
+                       { type: 'circle', x: 560, y: 180, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 730, y: 430, width: 100, height: 60, color: colors.yellow, angle: 240 },
+                       { type: 'rect', x: 640, y: 320, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+             //frame4
+             { shapes: [{ type: 'rect', x: 450, y: 230, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 3 },
+                       { type: 'circle', x: 580, y: 160, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 720, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 300, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 5
+            { shapes: [{ type: 'rect', x: 450, y: 220, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 4 },
+                       { type: 'circle', x: 600, y: 140, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 505, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 720, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 310, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 6
+            { shapes: [{ type: 'rect', x: 450, y: 210, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 6 },
+                       { type: 'circle', x: 620, y: 120, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 65, angle:150 },
+                       { type: 'semiCircle', x: 510, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 718, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 335, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 7
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 8 },
+                       { type: 'circle', x: 640, y: 100, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 68, angle:150 },
+                       { type: 'semiCircle', x: 515, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 716, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 120, color: colors.red, cornerRadius: 10, angle: 1 }
+                      ]
+            },
+
+            //frame 8
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 10},
+                       { type: 'circle', x: 650, y: 100, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.red, width: 60, height: 70, angle:150 },
+                       { type: 'semiCircle', x: 520, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 34, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 715, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 125, color: colors.red, cornerRadius: 10, angle: 1 }
+                      ]
+            },
+
+            //frame 9
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 15 },
+                       { type: 'circle', x: 655, y: 110, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 510, y: 380, radius: 30, color: colors.red, width: 60, height: 80, angle:150 },
+                       { type: 'semiCircle', x: 530, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 665, y: 505, radius: 32, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 705, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 130, color: colors.red, cornerRadius: 10, angle: 2 }
+                      ]
+            },
+
+            //frame 10
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 25 },
+                       { type: 'circle', x: 665, y: 115, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 520, y: 380, radius: 30, color: colors.red, width: 60, height: 90, angle:150 },
+                       { type: 'semiCircle', x: 555, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 660, y: 505, radius: 30, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 700, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 140, color: colors.red, cornerRadius: 10, angle: 5 }
+                      ]
+            },
+
+            //frame 11
+            { shapes: [{ type: 'rect', x: 450, y: 210, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 40 },
+                       { type: 'circle', x: 675, y: 140, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 520, y: 380, radius: 30, color: colors.red, width: 60, height: 100, angle:150 },
+                       { type: 'semiCircle', x: 580, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 655, y: 510, radius: 28, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 700, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 150, color: colors.red, cornerRadius: 10, angle: 10 }
+                      ]
+            },
+
+            //frame 12
+            { shapes: [{ type: 'rect', x: 450, y: 220, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 60 },
+                       { type: 'circle', x: 680, y: 190, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 520, y: 390, radius: 30, color: colors.red, width: 60, height: 120, angle:150 },
+                       { type: 'semiCircle', x: 600, y: 490, radius: 80, color: colors.pink, progress: 1 },
+                       { type: 'circle', x: 645, y: 500, radius: 28, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 150, color: colors.red, cornerRadius: 10, angle: 15 }
+                      ]
+            },
+
+            //frame 13
+            { shapes: [
+                    { type: 'rect', x: 460, y: 230, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 80 },
+                    { type: 'circle', x: 685, y: 230, radius: 30, color: colors.yellow },
+                    { type: 'roundRect', x: 550, y: 400, radius: 30, color: colors.red, width: 60, height: 160, angle: 150 },
+                    { type: 'semiCircle', x: 640, y: 490, radius: 80, color: colors.pink, progress: 1.3 },
+                    { type: 'circle', x: 645, y: 500, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 150, color: colors.red, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            //frame 14
+            { shapes: [
+                    { type: 'rect', x: 460, y: 270, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 75 },
+                    { type: 'circle', x: 720, y: 320, radius: 30, color: colors.yellow },
+                    { type: 'roundRect', x: 570, y: 430, radius: 30, color: colors.red, width: 60, height: 200, angle: 150 },
+                    { type: 'semiCircle', x: 680, y: 490, radius: 80, color: colors.pink, progress: 1.5 },
+                    { type: 'circle', x: 640, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 250, color: colors.red, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            //frame 15
+            { shapes: [
+                    { type: 'rect', x: 510, y: 350, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 65 },
+                    { type: 'circle', x: 705, y: 370, radius: 30, color: colors.yellow },
+                    { type: 'roundRect', x: 590, y: 450, radius: 30, color: colors.red, width: 60, height: 220, angle: 150 },
+                    { type: 'semiCircle', x: 700, y: 490, radius: 80, color: colors.pink, progress: 1.7 },
+                    { type: 'circle', x: 645, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 270, color: colors.red, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            //frame 16
+            { shapes: [
+                    { type: 'circle', x: 690, y: 390, radius: 25, color: colors.yellow },
+                    { type: 'roundRect', x: 590, y: 450, radius: 30, color: colors.red, width: 60, height: 220, angle: 150 },
+                    { type: 'circle', x: 645, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 670, y: 430, width: 80, height: 40, color: colors.yellow, angle: 240 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 270, color: colors.red, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+
+
+            // set 2
+            { backgroundColor: backgrounds[1], shapes: [
+                { type: 'rect', x: 450, y: 280, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 0 },
+                { type: 'circle', x: 540, y: 190, radius: 30, color: colors.yellow },
+                { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 60, angle: 0 },
+                { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 }, // Circle
+                { type: 'triangle', x: 740, y: 430, width: 100, height: 60, color: colors.yellow, angle: 270 }, // Triangle
+                { type: 'rect', x: 640, y: 350, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 } // Rectangle
+            ]},
+
+        // frame1
+        { shapes: [{ type: 'rect', x: 450, y: 280, width: 100, height: 70, color: colors.white, cornerRadius: 10, angle: 0 },
+                       { type: 'circle', x: 540, y: 190, radius: 30, color: colors.yellow,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 }, // Circle
+                       { type: 'triangle', x: 740, y: 430, width: 100, height: 60, color: colors.yellow, angle: 270 }, // Triangle
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 } // Rectangle
+                      ]
+            },
+
+            //frame2
+            { shapes: [{ type: 'rect', x: 450, y: 250, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 1 },
+                       { type: 'circle', x: 540, y: 220, radius: 30, color: colors.grey, },
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 735, y: 430, width: 100, height: 60, color: colors.yellow, angle: 260 },
+                       { type: 'rect', x: 640, y: 340, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 3
+            { shapes: [{ type: 'rect', x: 450, y: 240, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 2 },
+                       { type: 'circle', x: 560, y: 180, radius: 30, color: colors.grey,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 730, y: 430, width: 100, height: 60, color: colors.yellow, angle: 240 },
+                       { type: 'rect', x: 640, y: 320, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+             //frame 4
+             { shapes: [{ type: 'rect', x: 450, y: 230, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 3 },
+                       { type: 'circle', x: 580, y: 160, radius: 30, color: colors.grey,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 500, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 720, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 300, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 5
+            { shapes: [{ type: 'rect', x: 450, y: 220, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 4 },
+                       { type: 'circle', x: 600, y: 140, radius: 30, color: colors.grey,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 60, angle: 0 },
+                       { type: 'semiCircle', x: 505, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 720, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 310, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 6
+            { shapes: [{ type: 'rect', x: 450, y: 210, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 6 },
+                       { type: 'circle', x: 620, y: 120, radius: 30, color: colors.grey,},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 65, angle:150 },
+                       { type: 'semiCircle', x: 510, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 718, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 335, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 0 }
+                      ]
+            },
+
+            //frame 7
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 8 },
+                       { type: 'circle', x: 640, y: 100, radius: 29, color: colors.grey},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 68, angle:150 },
+                       { type: 'semiCircle', x: 515, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 35, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 716, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 120, color: colors.grey, cornerRadius: 10, angle: 1 }
+                      ]
+            },
+
+            //frame 8
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 10},
+                       { type: 'circle', x: 650, y: 100, radius: 30, color: colors.grey},
+                       { type: 'roundRect', x: 500, y: 380, radius: 30, color: colors.grey, width: 60, height: 70, angle:150 },
+                       { type: 'semiCircle', x: 520, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 670, y: 505, radius: 34, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 715, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 125, color: colors.grey, cornerRadius: 10, angle: 1 }
+                      ]
+            },
+
+            //frame 9
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 15 },
+                       { type: 'circle', x: 655, y: 110, radius: 26, color: colors.grey},
+                       { type: 'roundRect', x: 510, y: 380, radius: 30, color: colors.grey, width: 60, height: 80, angle:150 },
+                       { type: 'semiCircle', x: 530, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 665, y: 505, radius: 32, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 705, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 130, color: colors.grey, cornerRadius: 10, angle: 2 }
+                      ]
+            },
+
+            //frame 10
+            { shapes: [{ type: 'rect', x: 450, y: 200, width: 100, height: 70, color: colors.grey, cornerRadius: 10, angle: 25 },
+                       { type: 'circle', x: 665, y: 145, radius: 28, color: colors.grey},
+                       { type: 'roundRect', x: 520, y: 380, radius: 30, color: colors.grey, width: 60, height: 90, angle:150 },
+                       { type: 'semiCircle', x: 555, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 660, y: 505, radius: 30, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 700, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 140, color: colors.grey, cornerRadius: 10, angle: 5 }
+                      ]
+            },
+
+            //frame 11 xxxx
+            { shapes: [
+                       { type: 'rect', x: 450, y: 220, width: 95, height: 65, color: colors.grey, cornerRadius: 13, angle: 25 },
+                       { type: 'circle', x: 665, y: 170, radius: 25, color: colors.grey },
+                       { type: 'roundRect', x: 520, y: 380, radius: 30, color: colors.grey, width: 60, height: 100, angle:150 },
+                       { type: 'semiCircle', x: 580, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 655, y: 510, radius: 28, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 700, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 150, color: colors.grey, cornerRadius: 10, angle: 10 }
+                      ]
+            },
+
+            //frame 12
+            { shapes: [
+                       { type: 'rect', x: 440, y: 220, width: 80, height: 60, color: colors.grey, cornerRadius: 16, angle: 25 },
+                       { type: 'circle', x: 665, y: 200, radius: 25, color: colors.grey },
+                       { type: 'roundRect', x: 520, y: 390, radius: 30, color: colors.grey, width: 60, height: 120, angle:150 },
+                       { type: 'semiCircle', x: 600, y: 490, radius: 80, color: colors.lightgreen, progress: 1 },
+                       { type: 'circle', x: 645, y: 500, radius: 28, color: colors.white, angle: 0 },
+                       { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                       { type: 'rect', x: 640, y: 350, width: 60, height: 150, color: colors.grey, cornerRadius: 10, angle: 15 }
+                      ]
+            },
+
+            //frame 13
+            { shapes: [
+                    { type: 'rect', x: 460, y: 220, width: 75, height: 50, color: colors.grey, cornerRadius: 18, angle: 30 },
+                    { type: 'circle', x: 665, y: 222, radius: 25, color: colors.grey },
+                    { type: 'roundRect', x: 550, y: 400, radius: 30, color: colors.grey, width: 60, height: 160, angle: 150 },
+                    { type: 'semiCircle', x: 640, y: 490, radius: 80, color: colors.lightgreen, progress: 1.3 },
+                    { type: 'circle', x: 645, y: 500, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 150, color: colors.grey, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            //frame 14
+            { shapes: [
+                    { type: 'rect', x: 480, y: 240, width: 70, height: 50, color: colors.grey, cornerRadius: 20, angle: 40 },
+                    { type: 'circle', x: 670, y: 243, radius: 25, color: colors.grey },
+                    { type: 'roundRect', x: 570, y: 430, radius: 30, color: colors.grey, width: 60, height: 200, angle: 150 },
+                    { type: 'semiCircle', x: 680, y: 490, radius: 80, color: colors.lightgreen, progress: 1.5 },
+                    { type: 'circle', x: 640, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 250, color: colors.grey, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            //frame 15
+            { shapes: [
+                    { type: 'rect', x: 510, y: 250, width: 60, height: 50, color: colors.grey, cornerRadius: 22, angle: 50 },
+                    { type: 'circle', x: 670, y: 273, radius: 25, color: colors.grey },
+                    { type: 'roundRect', x: 590, y: 450, radius: 30, color: colors.grey, width: 60, height: 220, angle: 150 },
+                    { type: 'semiCircle', x: 700, y: 490, radius: 80, color: colors.lightgreen, progress: 1.7 },
+                    { type: 'circle', x: 645, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 685, y: 430, width: 100, height: 60, color: colors.yellow, angle: 220 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 270, color: colors.grey, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            //frame 16
+            { shapes: [
+                    { type: 'rect', x: 540, y: 250, width: 50, height: 50, color: colors.grey, cornerRadius: 25, angle: 65 },
+                    { type: 'circle', x: 670, y: 273, radius: 25, color: colors.grey },
+                    { type: 'roundRect', x: 590, y: 450, radius: 30, color: colors.grey, width: 60, height: 220, angle: 150 },
+                    { type: 'circle', x: 645, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 670, y: 430, width: 80, height: 40, color: colors.yellow, angle: 240 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 270, color: colors.grey, cornerRadius: 10, angle: 15 }
+                ]
+            },
+            //frame 16
+            { shapes: [
+                    { type: 'rect', x: 540, y: 250, width: 50, height: 50, color: colors.grey, cornerRadius: 25, angle: 65 },
+                    { type: 'circle', x: 670, y: 273, radius: 25, color: colors.grey },
+                    { type: 'roundRect', x: 590, y: 450, radius: 30, color: colors.grey, width: 60, height: 220, angle: 150 },
+                    { type: 'circle', x: 645, y: 580, radius: 28, color: colors.white, angle: 0 },
+                    { type: 'triangle', x: 670, y: 430, width: 80, height: 40, color: colors.yellow, angle: 240 },
+                    { type: 'rect', x: 640, y: 350, width: 60, height: 270, color: colors.grey, cornerRadius: 10, angle: 15 }
+                ]
+            },
+
+            // Image frame
+            { shapes: [
+                    { type: 'image', src: 'crescendo.png', x: 490, y: 285, width: 300, height: 150 },
+                    { type: 'text', text: 'Crescendo International College', x: 420, y: 255, fontSize: 50, color: colors.white },
+                ]
+            },
+
+            // Image frame
+            { shapes: [
+                    { type: 'image', src: 'crescendo.png', x: 490, y: 285, width: 300, height: 150 }
+                ]
+            },
+
+        ];
+
+        const imageFrames = frames.filter(frame => frame.shapes.some(shape => shape.type === 'image'));
+        const images = {};
+
+        // Preload images
+        imageFrames.forEach(frame => {
+            frame.shapes.forEach(shape => {
+                if (shape.type === 'image') {
+                    const img = new Image();
+                    img.src = shape.src;
+                    images[shape.src] = img;
+                }
+            });
+        });
+
+        let currentFrame = 0;
+        const totalFrames = frames.length;
+        const frameDuration = 50; 
+        const delayFrames = [16, 33, 35]; 
+        const delayDuration = 1000; 
+
+        let lastTimestamp = 0;
+        let delayStart = null;
+
+        function animate(timestamp) {
+            if (!lastTimestamp) {
+                lastTimestamp = timestamp;
+            }
+
+            const progress = timestamp - lastTimestamp;
+
+            if (delayStart !== null) {
+                const delayProgress = timestamp - delayStart;
+                if (delayProgress >= delayDuration) {
+                    delayStart = null; 
+                    lastTimestamp = timestamp; 
+                }
+            } else if (progress >= frameDuration) {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                const frame = frames[currentFrame];
+
+                canvas.style.backgroundColor = frame.backgroundColor;
+
+                frame.shapes.forEach(shape => {
+                    switch (shape.type) {
+                        case 'rect':
+                            drawRect(shape.x, shape.y, shape.width, shape.height, shape.color, shape.cornerRadius, shape.angle);
+                            break;
+                        case 'circle':
+                            drawShape(shape.x, shape.y, shape.radius, shape.color, null, null, shape.angle);
+                            break;
+                        case 'semiCircle':
+                            drawSemiCircle(shape.x, shape.y, shape.radius, shape.color, shape.progress);
+                            break;
+                        case 'roundRect':
+                            drawShape(shape.x, shape.y, shape.radius, shape.color, shape.width, shape.height, shape.angle);
+                            break;
+                        case 'triangle':
+                            drawTriangle(shape.x, shape.y, shape.width, shape.height, shape.color, shape.angle);
+                            break;
+                        case 'image':
+                            const img = images[shape.src];
+                            if (img) {
+                                context.drawImage(img, shape.x, shape.y, shape.width, shape.height);
+                            }
+                            break;
+                        case 'text':
+                            drawText(shape.text, shape.x, shape.y, shape.fontSize, shape.color, shape.angle);
+                            break;
+                    }
+                });
+
+                currentFrame = (currentFrame + 1) % totalFrames;
+                lastTimestamp = timestamp;
+
+                if (delayFrames.includes(currentFrame)) {
+                    delayStart = timestamp;
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
